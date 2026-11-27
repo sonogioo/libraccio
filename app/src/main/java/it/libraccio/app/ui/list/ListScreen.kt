@@ -43,6 +43,7 @@ import it.libraccio.app.data.ReadingStatus
 import it.libraccio.app.data.readingStatus
 import it.libraccio.app.ui.LibraryViewModel
 import it.libraccio.app.ui.components.BookCover
+import it.libraccio.app.ui.sharedCover
 
 private const val FAV = "FAV"
 
@@ -103,7 +104,7 @@ fun ListScreen(vm: LibraryViewModel, onBack: () -> Unit, onOpenBook: (String) ->
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        BookCover(b, Modifier.size(width = 44.dp, height = 66.dp), small = true)
+                        BookCover(b, Modifier.size(width = 44.dp, height = 66.dp).sharedCover(b.id), small = true)
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(b.title, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)

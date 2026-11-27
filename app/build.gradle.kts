@@ -6,6 +6,8 @@ plugins {
 }
 
 val keystorePath: String? = System.getenv("KEYSTORE_PATH")
+// Build per gli screenshot in emulatore: tutte le ABI e modalità demo attiva.
+val screenshotBuild = project.hasProperty("screenshotBuild")
 
 android {
     namespace = "it.libraccio.app"
@@ -17,6 +19,7 @@ android {
         targetSdk = 35
         versionCode = (System.getenv("VERSION_CODE") ?: "1").toInt()
         versionName = System.getenv("VERSION_NAME") ?: "1.0.0"
+        buildConfigField("boolean", "DEMO", if (screenshotBuild) "true" else "false")
     }
 
     signingConfigs {
@@ -32,7 +35,13 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (!screenshotBuild) {
+                // i telefoni reali sono ARM: niente librerie native per x86
+                ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
+            }
             signingConfig = if (keystorePath != null) {
                 signingConfigs.getByName("release")
             } else {
@@ -50,6 +59,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     lint {
         checkReleaseBuilds = false
@@ -67,6 +77,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core")
 
     implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")

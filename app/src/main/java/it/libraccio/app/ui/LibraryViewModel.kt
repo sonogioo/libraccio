@@ -51,6 +51,13 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { repo.save(book) }
     }
 
+    /** Solo build di test: riempie una libreria vuota con libri di esempio. */
+    fun seedDemo() {
+        viewModelScope.launch {
+            if (repo.isEmpty()) it.libraccio.app.data.DemoData.books().forEach { repo.save(it) }
+        }
+    }
+
     fun delete(book: Book) {
         viewModelScope.launch { repo.delete(book) }
     }

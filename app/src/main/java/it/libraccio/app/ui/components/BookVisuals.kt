@@ -29,6 +29,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.nativeCanvas
@@ -133,7 +135,7 @@ fun BookSpine(
                 val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
                     color = textColor.toArgb()
                     textSize = min(w * 0.48f, 13.sp.toPx()).coerceAtLeast(7.sp.toPx())
-                    typeface = Typeface.create(Typeface.SERIF, Typeface.BOLD)
+                    typeface = it.libraccio.app.ui.theme.LibFonts.spineBold
                 }
                 val title = TextUtils.ellipsize(book.title, paint, h * 0.6f, TextUtils.TruncateAt.END).toString()
                 nc.save()
@@ -146,7 +148,7 @@ fun BookSpine(
                 if (surname.isNotBlank() && w > 16.dp.toPx()) {
                     val small = TextPaint(paint).apply {
                         textSize = paint.textSize * 0.72f
-                        typeface = Typeface.create(Typeface.SERIF, Typeface.NORMAL)
+                        typeface = it.libraccio.app.ui.theme.LibFonts.spineRegular
                     }
                     val text = TextUtils.ellipsize(surname.uppercase(), small, h * 0.16f, TextUtils.TruncateAt.END).toString()
                     nc.save()
@@ -179,7 +181,7 @@ fun FlatBook(book: Book, modifier: Modifier = Modifier) {
             val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = textColor.toArgb()
                 textSize = min(h * 0.55f, 12.sp.toPx())
-                typeface = Typeface.create(Typeface.SERIF, Typeface.BOLD)
+                typeface = it.libraccio.app.ui.theme.LibFonts.spineBold
             }
             val text = TextUtils.ellipsize(book.title, paint, w - pages - 12.dp.toPx(), TextUtils.TruncateAt.END).toString()
             canvas.nativeCanvas.drawText(text, 6.dp.toPx(), h / 2 + paint.textSize * 0.35f, paint)
@@ -205,7 +207,7 @@ fun BookCover(book: Book, modifier: Modifier = Modifier, small: Boolean = false)
             Text(
                 book.title,
                 color = textColor,
-                fontFamily = FontFamily.Serif,
+                fontFamily = it.libraccio.app.ui.theme.LibFonts.family,
                 fontWeight = FontWeight.Bold,
                 fontSize = if (small) 7.sp else 18.sp,
                 lineHeight = if (small) 8.sp else 22.sp,
@@ -232,5 +234,26 @@ fun BookCover(book: Book, modifier: Modifier = Modifier, small: Boolean = false)
                 .width(if (small) 3.dp else 9.dp)
                 .background(Brush.horizontalGradient(listOf(Color.Black.copy(alpha = 0.35f), Color.Transparent))),
         )
+    }
+}
+
+/** Riflesso della copertina su una superficie lucida, sfumato verso il basso. */
+fun Modifier.reflection(fraction: Float = 0.3f, alpha: Float = 0.3f): Modifier = this.drawWithContent {
+    drawContent()
+    val h = size.height
+    val rh = h * fraction
+    val top = h + 3f
+    drawIntoCanvas { canvas ->
+        canvas.saveLayer(androidx.compose.ui.geometry.Rect(0f, top, size.width, top + rh), androidx.compose.ui.graphics.Paint())
+        withTransform({ scale(1f, -1f, pivot = Offset(size.width / 2f, h + 1.5f)) }) {
+            this@drawWithContent.drawContent()
+        }
+        drawRect(
+            Brush.verticalGradient(0f to Color.Black.copy(alpha = alpha), 1f to Color.Transparent, startY = top, endY = top + rh),
+            topLeft = Offset(0f, top),
+            size = Size(size.width, rh),
+            blendMode = androidx.compose.ui.graphics.BlendMode.DstIn,
+        )
+        canvas.restore()
     }
 }

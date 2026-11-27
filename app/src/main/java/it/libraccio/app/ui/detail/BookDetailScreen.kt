@@ -68,7 +68,11 @@ import it.libraccio.app.data.readingStatus
 import it.libraccio.app.data.withStatus
 import it.libraccio.app.ui.LibraryViewModel
 import it.libraccio.app.ui.components.BookCover
-import it.libraccio.app.ui.components.spineTextColor
+import it.libraccio.app.ui.components.reflection
+import it.libraccio.app.ui.sharedCover
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.ui.graphics.luminance
+import it.libraccio.app.ui.theme.lighten
 import it.libraccio.app.ui.theme.darken
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
@@ -125,11 +129,34 @@ fun BookDetailScreen(
         }
     }
 
-    val flip = remember(b.id) { Animatable(-90f) }
-    LaunchedEffect(b.id) { flip.animateTo(0f, tween(700, easing = FastOutSlowInEasing)) }
-
     val base = Color(b.spineColor)
+    val deep = base.darken(0.68f)
+    val accent = if (base.luminance() < 0.35f) base.lighten(0.5f) else base
+    val cream = Color(0xFFF3EADB)
+    val pageScheme = darkColorScheme(
+        primary = accent,
+        onPrimary = if (accent.luminance() > 0.5f) Color(0xFF1C1712) else cream,
+        primaryContainer = accent.copy(alpha = 0.3f),
+        onPrimaryContainer = cream,
+        secondaryContainer = accent.copy(alpha = 0.28f),
+        onSecondaryContainer = cream,
+        background = deep,
+        surface = deep.lighten(0.04f),
+        surfaceVariant = deep.lighten(0.1f),
+        surfaceContainer = deep.lighten(0.07f),
+        surfaceContainerHighest = deep.lighten(0.12f),
+        onBackground = cream,
+        onSurface = cream,
+        onSurfaceVariant = cream.copy(alpha = 0.72f),
+        outline = cream.copy(alpha = 0.35f),
+        outlineVariant = cream.copy(alpha = 0.18f),
+        error = Color(0xFFFF8A80),
+    )
+
+    MaterialTheme(colorScheme = pageScheme, typography = MaterialTheme.typography) {
     Scaffold(
+        containerColor = Color.Transparent,
+        modifier = Modifier.background(Brush.verticalGradient(listOf(base.darken(0.45f), deep, deep.darken(0.4f)))),
         topBar = {
             TopAppBar(
                 title = {},
@@ -139,9 +166,9 @@ fun BookDetailScreen(
                     IconButton(onClick = { confirmDelete = true }) { Icon(Icons.Default.Delete, "Elimina") }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = base.darken(0.2f),
-                    navigationIconContentColor = spineTextColor(base.darken(0.2f)),
-                    actionIconContentColor = spineTextColor(base.darken(0.2f)),
+                    containerColor = Color.Transparent,
+                    navigationIconContentColor = cream,
+                    actionIconContentColor = cream,
                 ),
             )
         },
@@ -155,20 +182,26 @@ fun BookDetailScreen(
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .background(Brush.verticalGradient(listOf(base.darken(0.2f), MaterialTheme.colorScheme.background)))
-                    .padding(vertical = 20.dp),
-                contentAlignment = Alignment.Center,
+                    .padding(top = 8.dp, bottom = 4.dp),
+                contentAlignment = Alignment.TopCenter,
             ) {
-                BookCover(
-                    b,
+                // alone di luce dietro la copertina
+                Box(
                     Modifier
-                        .size(width = 160.dp, height = 240.dp)
-                        .graphicsLayer {
-                            rotationY = flip.value
-                            cameraDistance = 12f * density
-                            shadowElevation = 12.dp.toPx()
-                        },
+                        .size(340.dp)
+                        .background(Brush.radialGradient(listOf(accent.copy(alpha = 0.35f), Color.Transparent))),
                 )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    BookCover(
+                        b,
+                        Modifier
+                            .size(width = 220.dp, height = 330.dp)
+                            .reflection()
+                            .sharedCover(b.id)
+                            .graphicsLayer { shadowElevation = 22.dp.toPx() },
+                    )
+                    Spacer(Modifier.height(96.dp))
+                }
             }
 
             Column(Modifier.padding(horizontal = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -351,6 +384,7 @@ fun BookDetailScreen(
             },
             dismissButton = { TextButton(onClick = { addQuote = false }) { Text("Annulla") } },
         )
+    }
     }
 }
 

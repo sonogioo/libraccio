@@ -51,13 +51,22 @@ private val DarkColors = darkColorScheme(
 )
 
 private val BaseType = Typography()
-private val LibraccioType = Typography(
-    displaySmall = BaseType.displaySmall.copy(fontFamily = FontFamily.Serif),
-    headlineLarge = BaseType.headlineLarge.copy(fontFamily = FontFamily.Serif),
-    headlineMedium = BaseType.headlineMedium.copy(fontFamily = FontFamily.Serif),
-    headlineSmall = BaseType.headlineSmall.copy(fontFamily = FontFamily.Serif),
-    titleLarge = BaseType.titleLarge.copy(fontFamily = FontFamily.Serif),
-)
+/** EB Garamond per titoli e testi "da libro"; il sans di sistema resta per etichette piccole. */
+private val LibraccioType by lazy {
+    val g = LibFonts.family
+    Typography(
+        displayLarge = BaseType.displayLarge.copy(fontFamily = g),
+        displayMedium = BaseType.displayMedium.copy(fontFamily = g),
+        displaySmall = BaseType.displaySmall.copy(fontFamily = g),
+        headlineLarge = BaseType.headlineLarge.copy(fontFamily = g, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium),
+        headlineMedium = BaseType.headlineMedium.copy(fontFamily = g, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium),
+        headlineSmall = BaseType.headlineSmall.copy(fontFamily = g, fontWeight = androidx.compose.ui.text.font.FontWeight.Medium),
+        titleLarge = BaseType.titleLarge.copy(fontFamily = g, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold),
+        titleMedium = BaseType.titleMedium.copy(fontFamily = g, fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold, fontSize = androidx.compose.ui.unit.TextUnit(18f, androidx.compose.ui.unit.TextUnitType.Sp)),
+        bodyLarge = BaseType.bodyLarge.copy(fontFamily = g, fontSize = androidx.compose.ui.unit.TextUnit(18f, androidx.compose.ui.unit.TextUnitType.Sp)),
+        bodyMedium = BaseType.bodyMedium.copy(fontFamily = g, fontSize = androidx.compose.ui.unit.TextUnit(16f, androidx.compose.ui.unit.TextUnitType.Sp)),
+    )
+}
 
 @Composable
 fun LibraccioTheme(dark: Boolean, content: @Composable () -> Unit) {

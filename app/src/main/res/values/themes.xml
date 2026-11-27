@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#FF000000</color>
-    <color name="window_background">#FF16110D</color>
-    <style name="Theme.Libraccio" parent="android:Theme.Material.Light.NoActionBar">
+    <color name="window_background">#FF000000</color>
+
+    <style name="Theme.Libraccio" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/window_background</item>
+    </style>
+
+    <!-- Schermata d'avvio: il logo su fondo nero -->
+    <style name="Theme.Libraccio.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#FF000000</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="windowSplashScreenIconBackgroundColor">#FF000000</item>
+        <item name="postSplashScreenTheme">@style/Theme.Libraccio</item>
     </style>
 </resources>

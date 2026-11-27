@@ -98,7 +98,11 @@ fun RoomScreen(
     onList: () -> Unit,
     onStats: () -> Unit,
     onSettings: () -> Unit,
+    command: RoomCommand? = null,
+    onCommandHandled: () -> Unit = {},
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val use3D = remember { supportsGles3(context) }
     val books by vm.books.collectAsStateWithLifecycle()
     val settings by vm.settings.collectAsStateWithLifecycle()
     val theme = RoomThemes.byKey(settings.roomTheme)
@@ -111,7 +115,7 @@ fun RoomScreen(
         containerColor = theme.wall,
         topBar = {
             TopAppBar(
-                title = { Text("Libraccio", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold) },
+                title = { Text("Libraccio", fontFamily = it.libraccio.app.ui.theme.LibFonts.family, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.headlineSmall) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = barColor,
                     titleContentColor = theme.onWall,
@@ -136,14 +140,26 @@ fun RoomScreen(
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
-            RoomScene(
-                books = books,
-                settings = settings,
-                theme = theme,
-                night = night,
-                liftedId = selected?.id,
-                onTap = { vm.play(Sfx.PAGE); selected = it },
-            )
+            if (use3D) {
+                Room3D(
+                    vm = vm,
+                    books = books,
+                    settings = settings,
+                    night = night,
+                    command = command,
+                    onCommandHandled = onCommandHandled,
+                    onOpenBook = onOpenBook,
+                )
+            } else {
+                RoomScene(
+                    books = books,
+                    settings = settings,
+                    theme = theme,
+                    night = night,
+                    liftedId = selected?.id,
+                    onTap = { vm.play(Sfx.PAGE); selected = it },
+                )
+            }
 
             Box(Modifier.align(Alignment.TopStart).padding(10.dp)) {
                 AssistChip(

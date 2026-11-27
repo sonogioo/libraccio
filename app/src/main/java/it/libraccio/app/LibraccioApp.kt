@@ -14,6 +14,7 @@ class LibraccioApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        it.libraccio.app.ui.theme.LibFonts.init(assets)
         container = AppContainer(this)
     }
 }

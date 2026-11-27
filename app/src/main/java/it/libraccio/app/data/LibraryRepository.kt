@@ -21,6 +21,8 @@ class LibraryRepository(private val context: Context, private val dao: BookDao) 
 
     suspend fun save(book: Book) = dao.upsert(book)
 
+    suspend fun isEmpty(): Boolean = dao.getAll().isEmpty()
+
     suspend fun delete(book: Book) {
         dao.delete(book)
         val url = book.coverUrl
