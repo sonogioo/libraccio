@@ -30,6 +30,12 @@ class LibraryViewModel(app: Application) : AndroidViewModel(app) {
         repo.books.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
     val settings: StateFlow<AppSettings> = settingsStore.state
 
+    init {
+        viewModelScope.launch {
+            settings.collect { BookLookup.googleApiKey = it.googleApiKey }
+        }
+    }
+
     fun book(id: String): Flow<Book?> = repo.observeBook(id)
     fun quotes(bookId: String): Flow<List<Quote>> = repo.observeQuotes(bookId)
 

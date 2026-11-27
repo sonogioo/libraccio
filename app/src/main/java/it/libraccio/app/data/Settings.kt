@@ -18,6 +18,7 @@ data class AppSettings(
     val yearlyGoal: Int = 24,
     val sort: SortMode = SortMode.AUTHOR,
     val pileOnDesk: Boolean = true,
+    val googleApiKey: String = "",
 )
 
 class SettingsStore(context: Context) {
@@ -32,6 +33,7 @@ class SettingsStore(context: Context) {
         yearlyGoal = prefs.getInt("goal", 24),
         sort = SortMode.entries.firstOrNull { it.name == prefs.getString("sort", null) } ?: SortMode.AUTHOR,
         pileOnDesk = prefs.getBoolean("pile", true),
+        googleApiKey = prefs.getString("googleKey", "") ?: "",
     )
 
     fun update(transform: (AppSettings) -> AppSettings) {
@@ -43,6 +45,7 @@ class SettingsStore(context: Context) {
             .putInt("goal", s.yearlyGoal)
             .putString("sort", s.sort.name)
             .putBoolean("pile", s.pileOnDesk)
+            .putString("googleKey", s.googleApiKey)
             .apply()
         _state.value = s
     }

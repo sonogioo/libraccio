@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
@@ -112,6 +113,26 @@ fun SettingsScreen(vm: LibraryViewModel, onBack: () -> Unit) {
                 value = settings.yearlyGoal.toFloat(),
                 onValueChange = { v -> vm.updateSettings { it.copy(yearlyGoal = v.roundToInt().coerceIn(1, 150)) } },
                 valueRange = 1f..150f,
+            )
+
+            HorizontalDivider()
+            Section("Ricerca libri")
+            Text(
+                "Libraccio cerca su Google Books e, se non risponde, su Open Library. " +
+                    "Senza chiave Google condivide una quota che a volte si esaurisce: " +
+                    "puoi crearne una gratuita su console.cloud.google.com (API \"Books\") e incollarla qui.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            var keyField by remember(settings.googleApiKey) { mutableStateOf(settings.googleApiKey) }
+            OutlinedTextField(
+                value = keyField,
+                onValueChange = { v ->
+                    keyField = v
+                    vm.updateSettings { it.copy(googleApiKey = v.trim()) }
+                },
+                label = { Text("Chiave API Google Books (facoltativa)") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
             )
 
             HorizontalDivider()

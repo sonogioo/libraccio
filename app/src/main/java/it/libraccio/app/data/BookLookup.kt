@@ -75,19 +75,61 @@ object BookLookup {
         }
     }
 
+    /** Chiave API di Google Books facoltativa (senza, Google condivide una quota che si esaurisce spesso). */
+    @Volatile
+    var googleApiKey: String = ""
+
+    /**
+     * Cerca prima su Google Books; se non risponde (quota esaurita, rete) o non trova nulla,
+     * passa a Open Library. Lancia un'eccezione solo se falliscono entrambe.
+     */
     suspend fun search(query: String): List<BookCandidate> = withContext(Dispatchers.IO) {
         val q = query.trim()
         val digits = Isbn.normalize(q)
         if (digits.length >= 10 && Isbn.isIsbn(digits)) {
-            listOfNotNull(byIsbn(Isbn.to13(digits)))
-        } else {
-            google(q, 25)
+            return@withContext listOfNotNull(byIsbn(Isbn.to13(digits)))
         }
+        val fromGoogle = runCatching { google(q, 25) }
+        val googleResults = fromGoogle.getOrDefault(emptyList())
+        if (googleResults.isNotEmpty()) return@withContext googleResults
+        val fromOpenLibrary = runCatching { openLibrarySearch(q) }
+        if (fromGoogle.isFailure && fromOpenLibrary.isFailure) throw fromOpenLibrary.exceptionOrNull()!!
+        fromOpenLibrary.getOrDefault(emptyList())
+    }
+
+    private fun openLibrarySearch(q: String): List<BookCandidate> {
+        val url = "https://openlibrary.org/search.json?q=" + URLEncoder.encode(q, "UTF-8") +
+            "&limit=25&fields=title,author_name,isbn,cover_i,first_publish_year,number_of_pages_median,publisher,subject,language"
+        val docs = JSONObject(get(url)).optJSONArray("docs") ?: return emptyList()
+        val out = mutableListOf<BookCandidate>()
+        for (i in 0 until docs.length()) {
+            val d = docs.optJSONObject(i) ?: continue
+            val title = d.clean("title")
+            if (title.isBlank()) continue
+            val isbns = d.optJSONArray("isbn").strings().map { Isbn.normalize(it) }
+            val isbn = isbns.firstOrNull { it.length == 13 && it.startsWith("97888") } // edizione italiana, se c'è
+                ?: isbns.firstOrNull { Isbn.isValid13(it) }
+                ?: isbns.firstOrNull { Isbn.isValid10(it) }?.let { Isbn.to13(it) }
+            val coverId = d.optLong("cover_i", 0L)
+            out += BookCandidate(
+                isbn = isbn,
+                title = title,
+                authors = d.optJSONArray("author_name").strings().take(3).joinToString(", "),
+                publisher = d.optJSONArray("publisher").strings().firstOrNull().orEmpty(),
+                year = if (d.has("first_publish_year")) d.optInt("first_publish_year").toString() else "",
+                pageCount = d.optInt("number_of_pages_median", 0),
+                genre = d.optJSONArray("subject").strings().firstOrNull().orEmpty(),
+                coverUrl = if (coverId > 0) "https://covers.openlibrary.org/b/id/$coverId-M.jpg" else null,
+            )
+        }
+        return out
     }
 
     private fun google(q: String, max: Int): List<BookCandidate> {
+        val key = googleApiKey.trim()
         val url = "https://www.googleapis.com/books/v1/volumes?q=" +
-            URLEncoder.encode(q, "UTF-8") + "&maxResults=$max&printType=books"
+            URLEncoder.encode(q, "UTF-8") + "&maxResults=$max&printType=books" +
+            (if (key.isNotEmpty()) "&key=" + URLEncoder.encode(key, "UTF-8") else "")
         val items = JSONObject(get(url)).optJSONArray("items") ?: return emptyList()
         val out = mutableListOf<BookCandidate>()
         for (i in 0 until items.length()) {
