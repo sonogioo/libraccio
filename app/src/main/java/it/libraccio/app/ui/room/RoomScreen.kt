@@ -168,28 +168,6 @@ fun RoomScreen(
                 }
             }
 
-            if (books.isEmpty()) {
-                Surface(
-                    modifier = Modifier.align(Alignment.Center).padding(32.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-                    tonalElevation = 4.dp,
-                ) {
-                    Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("La tua stanza è pronta", style = MaterialTheme.typography.titleLarge)
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            "Gli scaffali aspettano il primo libro. Scansiona il codice a barre sul retro, oppure cercalo per titolo.",
-                            textAlign = TextAlign.Center,
-                        )
-                        Spacer(Modifier.height(14.dp))
-                        Button(onClick = onScan) { Text("📷  Scansiona il primo libro") }
-                        Spacer(Modifier.height(6.dp))
-                        OutlinedButton(onClick = onSearch) { Text("Cerca per titolo") }
-                    }
-                }
-            }
-
             selected?.let { book ->
                 BookPullOut(
                     book = book,
