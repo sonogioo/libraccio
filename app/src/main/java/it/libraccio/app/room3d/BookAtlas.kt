@@ -67,8 +67,8 @@ object BookAtlasFactory {
         val light = isLight(base)
         val ink = if (light) Color.rgb(32, 26, 20) else Color.rgb(242, 232, 210)
         val gold = Color.rgb(212, 172, 92)
-        val style = (b.id.hashCode() and 0x7fffffff) % 4
-        val foil = if (style == 0 || style == 2) gold else ink
+        val design = (b.id.hashCode() and 0x7fffffff) % 4
+        val foil = if (design == 0 || design == 2) gold else ink
 
         // ---- dorso ----
         c.save()
@@ -83,7 +83,7 @@ object BookAtlasFactory {
         }
         c.drawRect(0f, 0f, sw.toFloat(), h.toFloat(), shade)
         val bandPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = foil }
-        when (style) {
+        when (design) {
             0 -> for (y in listOf(0.06f, 0.085f, 0.915f, 0.94f)) c.drawRect(0f, h * y, sw.toFloat(), h * y + max(1f, h * 0.006f), bandPaint)
             1 -> {
                 val lbl = Paint().apply { color = Color.rgb(28, 24, 20) }
@@ -102,12 +102,12 @@ object BookAtlasFactory {
             }
         }
         val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = if (style == 1) gold else foil
+            color = if (design == 1) gold else foil
             typeface = LibFonts.spineBold
             textSize = min(sw * 0.56f, h * 0.055f).coerceAtLeast(6f)
             letterSpacing = 0.02f
         }
-        if (style == 1) {
+        if (design == 1) {
             // etichetta in testa con il titolo orizzontale (dorsi larghi) o verticale
             vertical(c, b.title, textPaint, sw, h * 0.36f, h * 0.5f)
         } else {
